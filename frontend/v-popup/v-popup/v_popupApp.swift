@@ -8,22 +8,21 @@
 import SwiftUI
 import Firebase
 
-class AppDelegate: NSObject, UIApplicationDelegate {
-  func application(_ application: UIApplication,
-                   didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-    FirebaseApp.configure()
-
-    return true
-  }
-}
-
 @main
 struct v_popupApp: App {
-    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+    private var authService: AuthService
+
+    private var dataService: ShoppingListsFirestoreService
+    
+    init() {
+        FirebaseApp.configure()
+        authService = AuthService()
+        dataService = ShoppingListsFirestoreService(authService: authService)
+    }
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView().environmentObject(authService).environmentObject(dataService)
         }
     }
 }
