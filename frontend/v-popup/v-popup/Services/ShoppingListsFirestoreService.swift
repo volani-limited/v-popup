@@ -14,6 +14,10 @@ import FirebaseFirestoreSwift
 
 class ShoppingListsFirestoreService: ObservableObject {
     @Published var shoppingLists: [ShoppingList]
+    @Published var selectedShoppingList: ShoppingList { didSet {
+            saveSelectedShoppingList()
+        }
+    }
     
     private var db: Firestore
     private var uid: String?
@@ -25,6 +29,7 @@ class ShoppingListsFirestoreService: ObservableObject {
     init(authService: AuthService) {
         subscriptions = Set<AnyCancellable>()
         shoppingLists = [ShoppingList]()
+        selectedShoppingList = ShoppingList(created: Date.now, owner: "nil", title: "nil", items: [ShoppingListItem]())
         
         self.db = authService.db
         
@@ -59,6 +64,34 @@ class ShoppingListsFirestoreService: ObservableObject {
                     return nil
                 }
             }
+        }
+    }
+    
+    func addShoppingList(withTitle title: String) {
+        let newList = ShoppingList(owner: uid!, title: title, items: [ShoppingListItem]())
+        
+        let ref = db.collection("shopping_lists")
+        
+        do {
+            try ref.addDocument(from: newList)
+        } catch {
+            print("There was an error saving the document")
+        }
+    }
+    
+    func deleteShoppingList(id: String) {
+        let ref = db.collection("shopping_lists").document(id)
+        
+        ref.delete()
+    }
+    
+    func saveSelectedShoppingList() {
+        let ref = db.collection("shopping_lists").document(selectedShoppingList.id!)
+        
+        do {
+            try ref.setData(from: selectedShoppingList)
+        } catch {
+            print("There was an error saving the document")
         }
     }
 }

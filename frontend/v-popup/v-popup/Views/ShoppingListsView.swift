@@ -9,25 +9,63 @@ import SwiftUI
 
 struct ShoppingListsView: View {
     @EnvironmentObject var dataModel: ShoppingListsFirestoreService
+    @Binding var slideOverPosition: Int
+    
+    @State private var shouldDefocusNewField: Bool = false
+
     var body: some View {
-        ZStack {
-            LinearGradient(Color.backgroundStart, Color.backgroundEnd)
-                .edgesIgnoringSafeArea(.all)
-            ScrollView {
-                VStack {
-                    ForEach(dataModel.shoppingLists, id: \.id) { shoppingList in
-                        ShoppingListsItemView(item: shoppingList)
-                    }
-                    // add entry field
-                }
+        VStack {
+            HStack {
+                Text("My\nLists").font(.title)
+                    .padding()
+                Spacer()
             }
             
+            ScrollView() {
+                VStack(spacing: 80) {
+                    AddShoppingListFieldView(focusStateChange: $shouldDefocusNewField)
+                    VStack(spacing: 75) {
+                        ForEach(dataModel.shoppingLists, id: \.id) { shoppingList in
+                            ShoppingListsItemView(item: shoppingList)
+                                .onTapGesture {
+                                    dataModel.selectedShoppingList = shoppingList
+                                    withAnimation {
+                                        slideOverPosition = 1
+                                    }
+                                }
+                        }
+                    }
+                }
+            }
+            if false { //!dataModel.sharedShoppingLists.isEmpty {
+                HStack {
+                    Text("Shared with me").font(.title)
+                        .padding()
+                    Spacer()
+                }
+                ScrollView {
+                    VStack {
+                        ForEach(dataModel.shoppingLists, id: \.id) { shoppingList in
+                            ShoppingListsItemView(item: shoppingList)
+                                .onTapGesture {
+                                    dataModel.selectedShoppingList = shoppingList
+                                    withAnimation {
+                                        slideOverPosition = 1
+                                    }
+                                }
+                        }
+                    }
+                }
+            }
+        }
+        .onTapGesture {
+            shouldDefocusNewField.toggle()
         }
     }
 }
 
 struct ShoppingListsView_Previews: PreviewProvider {
     static var previews: some View {
-        ShoppingListsView()
+        ShoppingListsView(slideOverPosition: .constant(0))
     }
 }

@@ -13,13 +13,17 @@ struct ShoppingList: Codable {
     @ServerTimestamp var created: Date?
     
     var owner: String
-    var items: [String]
+    var sharedWith: String?
+    var title: String
+    var items: [ShoppingListItem]
     
     enum CodingKeys: String, CodingKey {
         case id
         case created
         case owner
+        case title
         case items
+        case sharedWith
     }
     
 }

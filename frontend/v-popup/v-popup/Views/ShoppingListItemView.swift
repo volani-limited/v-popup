@@ -8,13 +8,29 @@
 import SwiftUI
 
 struct ShoppingListItemView: View {
+    @EnvironmentObject var dataModel: ShoppingListsFirestoreService
+
+    var item: ShoppingListItem
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        GeometryReader { geometry in
+            HStack {
+                Text(item.title)
+                    .padding()
+                    .frame(width: geometry.size.width - 100)
+                    .background(NeumorphicShape(isHighlighted: false, shape: RoundedRectangle(cornerRadius: 25)))
+                    .offset(x: 50)
+                Button {
+                    dataModel.selectedShoppingList.items = dataModel.selectedShoppingList.items.filter { $0.id != item.id}
+                } label: {
+                    Image(systemName: "trash")
+                }
+            }
+        }
     }
 }
 
 struct ShoppingListItemView_Previews: PreviewProvider {
     static var previews: some View {
-        ShoppingListItemView()
+        ShoppingListItemView(item: ShoppingListItem(title: "title"))
     }
 }

@@ -11,14 +11,31 @@ import Firebase
 struct RootView: View {
     @EnvironmentObject var authService: AuthService
     @EnvironmentObject var dataModel: ShoppingListsFirestoreService
+    
+    @State var slideOverPosition: Int = 0
 
     var body: some View {
-        ShoppingListsView()
-        .onAppear {
-            if authService.user == nil {
-                authService.signInAnonymously { error in
-                    if error == nil {
-                        dataModel.registerDocumentsListener()
+        GeometryReader { geometry in
+            ZStack {
+                ShoppingListsView(slideOverPosition: $slideOverPosition)
+                    .frame(width: geometry.size.width, height: geometry.size.height)
+                ShoppingListView(slideOverPosition: $slideOverPosition)
+                    .frame(width: geometry.size.width, height: geometry.size.height)
+                    .offset(x: geometry.size.width)
+            }
+            .background{
+                LinearGradient(Color.backgroundStart, Color.backgroundEnd)
+                    .edgesIgnoringSafeArea(.all)
+                    .frame(width: geometry.size.width*2, height: geometry.size.height)
+                    .offset(x: geometry.size.width/2)
+            }
+            .offset(x: -geometry.size.width * CGFloat(slideOverPosition))
+            .onAppear {
+                if authService.user == nil {
+                    authService.signInAnonymously { error in
+                        if error == nil {
+                            dataModel.registerDocumentsListener()
+                        }
                     }
                 }
             }
