@@ -24,65 +24,42 @@ class AuthService: ObservableObject {
         registerUserFileListener()
     }
     
-    func signInAnonymously(completionHandler: @escaping (Error?) -> Void) { // Wrap Firebase built in function, with completionHandler
-        Auth.auth().signInAnonymously() { [weak self] authResult, error in //TODO: improve error handling?
-            if let error = error {
-                print("Anonymous sign in failed")
-                completionHandler(error)
-                return
-            }
-            
-            print("User anonymously signed in with uid: " + String(authResult!.user.uid))
-            
-            self?.localUser = LocalUser(id: authResult!.user.uid)
-            self?.setUserFile()
-            
-            completionHandler(nil)
-        }
+    func signInAnonymously() async throws {
+        let authResult = try await Auth.auth().signInAnonymously()
+        
+        print("User anonymously signed in with uid: " + String(authResult.user.uid))
+        
+        localUser = LocalUser(id: authResult.user.uid)
+        try setUserFile()
     }
     
-    func signInWithGoogle() {
+    func signInWithGoogle() async throws {
         let clientID = FirebaseApp.app()!.options.clientID
         
         let config = GIDConfiguration(clientID: clientID!)
         GIDSignIn.sharedInstance.configuration = config
         
-        let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene
-        let rootViewController = windowScene!.windows.first?.rootViewController
+        let windowScene = await UIApplication.shared.connectedScenes.first as? UIWindowScene
+        let rootViewController = await windowScene!.windows.first?.rootViewController
         
-        GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController!) { [weak self] result, error in
-            guard error == nil, let user = result?.user, let idToken = user.idToken?.tokenString else {
-                print("There was an error signing in with Google")
-                return
-            }
-            
-            let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: user.accessToken.tokenString)
-            
-            self?.user?.link(with: credential) { result, error in
-                if let error = error {
-                    
-                } else {
-                    self?.localUser = LocalUser(id: self?.user?.uid, created: self?.localUser?.created, email: self?.user?.email)
-                    self?.setUserFile()
-                }
-            }
-        }
+        let authResult = try await GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController!)
+        
+        let credential = GoogleAuthProvider.credential(withIDToken: authResult.user.idToken!.tokenString, accessToken: authResult.user.accessToken.tokenString)
+        
+        try await self.user?.link(with: credential)
+        localUser?.email = self.user?.email
+        try setUserFile()
     }
     
-    private func setUserFile() { //TODO: make async?
-        do {
-            try db.collection("users").document(self.user!.uid).setData(from: self.localUser)
-        }
-        catch {
-            print("There was an error: " + error.localizedDescription)
-        }
+    private func setUserFile() throws { //TODO: make async?
+        try db.collection("users").document(self.user!.uid).setData(from: self.localUser)
     }
     
     private func registerUserFileListener() {
         if let userFileListener = userFileListener {
             userFileListener.remove() // Remove listener if it exists already
         }
-        
+
         if let user = user {
             let ref = db.collection("users").document(user.uid) // If user exists, take UID and build DB reference
             
@@ -94,19 +71,28 @@ class AuthService: ObservableObject {
         }
     }
     
-    private func registerAuthStateDidChangeListener () {
+    private func registerAuthStateDidChangeListener() {
         if let handle = userStateHandle {
             Auth.auth().removeStateDidChangeListener(handle) // Remove handle if it exists already
         }
         
-        self.userStateHandle = Auth.auth().addStateDidChangeListener { [weak self] (auth, user) in // Add handle and handle cases
-            self?.user = user
-            if let user = user {
-                print("User state changed, uid: " + user.uid)
-            } else {
-                self?.signInAnonymously(completionHandler: nil)
-                
+        self.userStateHandle = Auth.auth().addStateDidChangeListener { (auth, user) in // Add handle and handle cases
+            Task {
+                self.user = user
+                if let user = user {
+                    print("User state changed, uid: " + user.uid)
+                } else {
+                    do {
+                        try await self.signInAnonymously()
+                    } catch {
+                        fatalError("The user could not be signed in.")
+                    }
+                }
             }
         }
     }
+}
+
+enum AuthError: Error {
+    case signInWithGoogleError
 }

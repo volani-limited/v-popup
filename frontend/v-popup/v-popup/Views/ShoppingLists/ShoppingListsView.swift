@@ -15,6 +15,7 @@ struct ShoppingListsView: View {
     
     @State private var shouldDefocusNewField: Bool = false
     @State private var showAuthAlert: Bool = false
+    @State private var showAuthErrorAlert: Bool = false
     
     var body: some View {
         VStack {
@@ -44,10 +45,19 @@ struct ShoppingListsView: View {
 
                     } else {
                         Button {
-                            authService.signInWithGoogle()
+                            Task {
+                                do {
+                                    try await authService.signInWithGoogle()
+                                } catch {
+                                    showAuthErrorAlert = true
+                                }
+                            }
                         } label: {
                             Text("Sign in with Google")
                         }
+                        .alert("There was an error signing in with Google", isPresented: $showAuthErrorAlert) {
+                                    Button("Ok", role: .cancel) { }
+                                }
                         
                         Button("Ok") {
                             
