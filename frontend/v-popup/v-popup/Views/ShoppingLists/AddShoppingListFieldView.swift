@@ -14,6 +14,8 @@ struct AddShoppingListFieldView: View {
     @State private var newTitle: String = ""
     @FocusState private var fieldFocusState: Bool
     
+    @State private var showAddError: Bool = false
+    
     var body: some View {
         GeometryReader { geometry in
             TextField("Add shopping list...", text: $newTitle)
@@ -26,9 +28,16 @@ struct AddShoppingListFieldView: View {
                     }
                 }
                 .onSubmit {
-                    dataModel.addShoppingList(withTitle: newTitle)
-                    newTitle = ""
+                    do {
+                        try dataModel.addShoppingList(withTitle: newTitle)
+                        newTitle = ""
+                    } catch {
+                        showAddError = true
+                    }
                 }
+                .alert("There was an error adding the shopping list", isPresented: $showAddError) {
+                            Button("Ok", role: .cancel) { }
+                        }
              .padding()
              .frame(width: geometry.size.width - 100)
              .background(NeumorphicShape(isHighlighted: true, shape: RoundedRectangle(cornerRadius: 25)))

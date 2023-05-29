@@ -57,7 +57,7 @@ struct ShoppingListsView: View {
                         }
                         .alert("There was an error signing in with Google", isPresented: $showAuthErrorAlert) {
                                     Button("Ok", role: .cancel) { }
-                                }
+                        }
                         
                         Button("Ok") {
                             

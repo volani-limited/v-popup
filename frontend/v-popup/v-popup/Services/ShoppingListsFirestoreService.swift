@@ -15,7 +15,11 @@ import FirebaseFirestoreSwift
 class ShoppingListsFirestoreService: ObservableObject {
     @Published var shoppingLists: [ShoppingList]
     @Published var selectedShoppingList: ShoppingList { didSet {
-            saveSelectedShoppingList()
+            do {
+                try saveSelectedShoppingList()
+            } catch {
+                print("There was an error saving the shopping list")
+            }
         }
     }
     
@@ -66,16 +70,11 @@ class ShoppingListsFirestoreService: ObservableObject {
         }
     }
     
-    func addShoppingList(withTitle title: String) {
+    func addShoppingList(withTitle title: String) throws {
         let newList = ShoppingList(owner: uid!, title: title, items: [ShoppingListItem]())
-        
         let ref = db.collection("shopping_lists")
         
-        do {
-            try ref.addDocument(from: newList)
-        } catch {
-            print("There was an error saving the document")
-        }
+        try ref.addDocument(from: newList)
     }
     
     func deleteShoppingList(id: String) {
@@ -84,13 +83,9 @@ class ShoppingListsFirestoreService: ObservableObject {
         ref.delete()
     }
     
-    func saveSelectedShoppingList() {
+    func saveSelectedShoppingList() throws {
         let ref = db.collection("shopping_lists").document(selectedShoppingList.id!)
         
-        do {
-            try ref.setData(from: selectedShoppingList)
-        } catch {
-            print("There was an error saving the document")
-        }
+        try ref.setData(from: selectedShoppingList)
     }
 }
