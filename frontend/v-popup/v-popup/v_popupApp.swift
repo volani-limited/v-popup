@@ -6,7 +6,9 @@
 //
 
 import SwiftUI
-import Firebase
+import FirebaseCore
+import FirebaseAuth
+import GoogleSignIn
 
 @main
 struct v_popupApp: App {
@@ -22,6 +24,9 @@ struct v_popupApp: App {
     var body: some Scene {
         WindowGroup {
             RootView().environmentObject(authService).environmentObject(dataService)
+                .onOpenURL { url in
+                    GIDSignIn.sharedInstance.handle(url)
+                }
         }
     }
 }

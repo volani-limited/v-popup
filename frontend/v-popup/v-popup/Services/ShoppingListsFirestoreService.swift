@@ -54,7 +54,6 @@ class ShoppingListsFirestoreService: ObservableObject {
                 return
             }
             
-            print(documents)
             
             self?.shoppingLists = documents.compactMap { queryDocumentSnapshot in
                 do {

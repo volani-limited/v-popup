@@ -9,10 +9,13 @@ import SwiftUI
 
 struct ShoppingListsView: View {
     @EnvironmentObject var dataModel: ShoppingListsFirestoreService
+    @EnvironmentObject var authService: AuthService
+
     @Binding var slideOverPosition: Int
     
     @State private var shouldDefocusNewField: Bool = false
-
+    @State private var showAuthAlert: Bool = false
+    
     var body: some View {
         VStack {
             HStack {
@@ -22,6 +25,41 @@ struct ShoppingListsView: View {
                     .foregroundColor(.titleText)
                     .padding()
                 Spacer()
+                Button {
+                    showAuthAlert = true
+                } label: {
+                    Image(systemName: "person.circle")
+                }
+                .buttonStyle(NeumorphicButtonStyle())
+                .padding()
+                .alert("Log in status", isPresented: $showAuthAlert) {
+                    if (authService.localUser?.email != nil) {
+                        Button(role: .destructive) {
+                            //handle sign out
+                        } label: {
+                            Text("Sign out")
+                        }
+                        
+                        Button("Ok") { }
+
+                    } else {
+                        Button {
+                            authService.signInWithGoogle()
+                        } label: {
+                            Text("Sign in with Google")
+                        }
+                        
+                        Button("Ok") {
+                            
+                        }
+                    }
+                } message: {
+                    if (authService.localUser?.email != nil) {
+                        Text("Currently signed in with Google")
+                    } else {
+                        Text("Currently signed in anonymously")
+                    }
+                }
             }
             
             ScrollView() {

@@ -30,15 +30,6 @@ struct RootView: View {
                     .offset(x: geometry.size.width / 2)
             }
             .offset(x: -geometry.size.width * CGFloat(slideOverPosition))
-            .onAppear {
-                if authService.user == nil {
-                    authService.signInAnonymously { error in
-                        if error == nil {
-                            dataModel.registerDocumentsListener()
-                        }
-                    }
-                }
-            }
         }
     }
 }

@@ -7,6 +7,7 @@
 
 import Foundation
 import Firebase
+import GoogleSignIn
 
 class AuthService: ObservableObject {
     @Published var user: User?
@@ -37,6 +38,34 @@ class AuthService: ObservableObject {
             self?.setUserFile()
             
             completionHandler(nil)
+        }
+    }
+    
+    func signInWithGoogle() {
+        let clientID = FirebaseApp.app()!.options.clientID
+        
+        let config = GIDConfiguration(clientID: clientID!)
+        GIDSignIn.sharedInstance.configuration = config
+        
+        let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene
+        let rootViewController = windowScene!.windows.first?.rootViewController
+        
+        GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController!) { [weak self] result, error in
+            guard error == nil, let user = result?.user, let idToken = user.idToken?.tokenString else {
+                print("There was an error signing in with Google")
+                return
+            }
+            
+            let credential = GoogleAuthProvider.credential(withIDToken: idToken, accessToken: user.accessToken.tokenString)
+            
+            self?.user?.link(with: credential) { result, error in
+                if let error = error {
+                    
+                } else {
+                    self?.localUser = LocalUser(id: self?.user?.uid, created: self?.localUser?.created, email: self?.user?.email)
+                    self?.setUserFile()
+                }
+            }
         }
     }
     
@@ -75,7 +104,8 @@ class AuthService: ObservableObject {
             if let user = user {
                 print("User state changed, uid: " + user.uid)
             } else {
-                print("User state changed, user signed out.")
+                self?.signInAnonymously(completionHandler: nil)
+                
             }
         }
     }
