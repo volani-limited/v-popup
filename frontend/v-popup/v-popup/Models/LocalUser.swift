@@ -13,7 +13,6 @@ struct LocalUser: Identifiable, Codable {
     @DocumentID var id: String?
     @ServerTimestamp var created: Date?
     
-    
     var email: String?
     
     enum CodingKeys: String, CodingKey {

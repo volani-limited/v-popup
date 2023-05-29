@@ -16,7 +16,8 @@ struct ShoppingListsView: View {
     var body: some View {
         VStack {
             HStack {
-                Text("My\nLists").font(.title)
+                Text("My\nLists")
+                    .font(.title)
                     .padding()
                 Spacer()
             }
@@ -37,6 +38,7 @@ struct ShoppingListsView: View {
                     }
                 }
             }
+            
             if false { //!dataModel.sharedShoppingLists.isEmpty {
                 HStack {
                     Text("Shared with me").font(.title)

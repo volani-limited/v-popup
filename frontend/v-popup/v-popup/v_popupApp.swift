@@ -11,7 +11,6 @@ import Firebase
 @main
 struct v_popupApp: App {
     private var authService: AuthService
-
     private var dataService: ShoppingListsFirestoreService
     
     init() {

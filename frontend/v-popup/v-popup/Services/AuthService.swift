@@ -26,39 +26,26 @@ class AuthService: ObservableObject {
     func signInAnonymously(completionHandler: @escaping (Error?) -> Void) { // Wrap Firebase built in function, with completionHandler
         Auth.auth().signInAnonymously() { [weak self] authResult, error in //TODO: improve error handling?
             if let error = error {
-                print("Anonymous sign in failed.")
+                print("Anonymous sign in failed")
                 completionHandler(error)
                 return
             }
             
             print("User anonymously signed in with uid: " + String(authResult!.user.uid))
             
-            self?.setUserFile(user: LocalUser(id: authResult!.user.uid))
+            self?.localUser = LocalUser(id: authResult!.user.uid)
+            self?.setUserFile()
             
             completionHandler(nil)
         }
     }
     
-    private func setUserFile(user: LocalUser) { //TODO: make async?
+    private func setUserFile() { //TODO: make async?
         do {
-            let _ = try db.collection("users").document(user.id!).setData(from: user)
-         }
-         catch {
-           print(error)
-         }
-    }
-    
-    private func registerUserFileListener(for uid: String) {
-        if let userFileListener = userFileListener {
-            userFileListener.remove() // Remove listener if it exists already
+            try db.collection("users").document(self.user!.uid).setData(from: self.localUser)
         }
-        
-        let ref = db.collection("users").document(uid) // If user exists, take UID and build DB reference
-            
-        userFileListener = ref.addSnapshotListener { documentSnapshot, error in
-            if let document = documentSnapshot, document.exists { // Add the listener and set the localUser from the document when it updates
-                self.localUser = try! document.data(as: LocalUser.self)
-            }
+        catch {
+            print("There was an error: " + error.localizedDescription)
         }
     }
     
@@ -90,7 +77,6 @@ class AuthService: ObservableObject {
             } else {
                 print("User state changed, user signed out.")
             }
-            self?.registerUserFileListener() // Register listener for userFile
         }
     }
 }

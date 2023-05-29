@@ -13,6 +13,7 @@ struct ShoppingListView: View {
     @Binding var slideOverPosition: Int
     
     @State private var shouldDefocusNewField: Bool = false
+
     var body: some View {
         VStack {
             HStack {
@@ -28,6 +29,7 @@ struct ShoppingListView: View {
                 }
                 Spacer()
             }
+            
             HStack {
                 VStack (alignment: .leading) {
                     Text(dataModel.selectedShoppingList.title).font(.title)
@@ -37,6 +39,7 @@ struct ShoppingListView: View {
                 .padding()
                 Spacer()
             }
+            
             ScrollView {
                 VStack(spacing: 80) {
                     AddShoppingListItemFieldView(focusStateChange: $shouldDefocusNewField)
@@ -47,8 +50,10 @@ struct ShoppingListView: View {
                     }
                 }
             }
+            
             Spacer()
             Spacer()
+
         }
         .onTapGesture {
             shouldDefocusNewField.toggle()

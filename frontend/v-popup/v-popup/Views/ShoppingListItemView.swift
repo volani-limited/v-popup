@@ -11,6 +11,7 @@ struct ShoppingListItemView: View {
     @EnvironmentObject var dataModel: ShoppingListsFirestoreService
 
     var item: ShoppingListItem
+
     var body: some View {
         GeometryReader { geometry in
             HStack {
