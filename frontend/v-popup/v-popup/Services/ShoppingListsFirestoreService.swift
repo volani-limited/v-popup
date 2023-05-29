@@ -36,12 +36,15 @@ class ShoppingListsFirestoreService: ObservableObject {
         selectedShoppingList = ShoppingList(created: Date.now, owner: "nil", title: "nil", items: [ShoppingListItem]())
         
         self.db = authService.db
-        
-        authService.$user.compactMap { user in
-            user?.uid
+    
+        authService.$user.sink { [weak self] user in
+            self?.uid = user?.uid
+            self?.registerDocumentsListener()
         }
-        .assign(to: \.uid, on: self)
         .store(in: &subscriptions)
+    }
+    deinit {
+        subscriptions.forEach { $0.cancel() }
     }
     
     func registerDocumentsListener() {
