@@ -71,21 +71,23 @@ class AuthService: ObservableObject {
         }
     }
     
+    
     private func registerAuthStateDidChangeListener() {
         if let handle = userStateHandle {
             Auth.auth().removeStateDidChangeListener(handle) // Remove handle if it exists already
         }
         
         self.userStateHandle = Auth.auth().addStateDidChangeListener { (auth, user) in // Add handle and handle cases
-            Task {
+            
                 self.user = user
                 if let user = user {
                     print("User state changed, uid: " + user.uid)
                 } else {
-                    do {
-                        try await self.signInAnonymously()
-                    } catch {
-                        fatalError("The user could not be signed in.")
+                    Task {
+                        do {
+                            try await self.signInAnonymously()
+                        } catch {
+                            fatalError("The user could not be signed in.")
                     }
                 }
             }
