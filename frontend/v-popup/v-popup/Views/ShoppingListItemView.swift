@@ -16,6 +16,8 @@ struct ShoppingListItemView: View {
         GeometryReader { geometry in
             HStack {
                 Text(item.title)
+                    .bold()
+                    .foregroundColor(.titleText)
                     .padding()
                     .frame(width: geometry.size.width - 100)
                     .background(NeumorphicShape(isHighlighted: false, shape: RoundedRectangle(cornerRadius: 25)))
@@ -24,6 +26,7 @@ struct ShoppingListItemView: View {
                     dataModel.selectedShoppingList.items = dataModel.selectedShoppingList.items.filter { $0.id != item.id}
                 } label: {
                     Image(systemName: "trash")
+                        .foregroundColor(.vRed)
                 }
             }
         }

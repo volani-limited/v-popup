@@ -17,7 +17,9 @@ struct ShoppingListsView: View {
         VStack {
             HStack {
                 Text("My\nLists")
-                    .font(.title)
+                    .bold()
+                    .font(.largeTitle)
+                    .foregroundColor(.titleText)
                     .padding()
                 Spacer()
             }

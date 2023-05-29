@@ -14,6 +14,10 @@ extension Color {
     
     static let highlightStart = Color("vHighlightStart")
     static let highlightEnd = Color("vHighlightEnd")
+    static let background = Color("background")
+    static let vRed = Color("red")
+    static let titleText = Color("titleText")
+    static let text = Color("text")
 }
 
 extension LinearGradient {

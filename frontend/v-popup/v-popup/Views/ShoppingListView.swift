@@ -23,18 +23,34 @@ struct ShoppingListView: View {
                     }
                 } label: {
                     ZStack {
+                        Image(systemName: "arrow.backward")
+                            .foregroundColor(.text)
+                    }
+                }.buttonStyle(NeumorphicButtonStyle())
+                .padding(20)
+                Spacer()
+                /*Button {
+                    //share
+                } label: {
+                    ZStack {
                         NeumorphicShape(isHighlighted: false, shape: Circle()).frame(width: 40, height: 40)
-                        Image(systemName: "arrow.backward").scaledToFit()
+                        Image(systemName: "arrow.backward").scaledToFit().foregroundColor(.text)
                     }
                 }
-                Spacer()
+                .padding(20)*/
             }
             
             HStack {
                 VStack (alignment: .leading) {
                     Text(dataModel.selectedShoppingList.title).font(.title)
-                    Text("" + (dataModel.selectedShoppingList.created?.formatted(date: .numeric, time: .omitted) ?? ""))
+                        .bold()
+                        .font(.largeTitle)
+                        .foregroundColor(.titleText)
+                    Text("Created: " + (dataModel.selectedShoppingList.created?.formatted(date: .numeric, time: .omitted) ?? ""))
+                        .foregroundColor(.text)
+                        .bold()
                     Text("Items: " + dataModel.selectedShoppingList.items.count.description)
+                        .foregroundColor(.text)
                 }
                 .padding()
                 Spacer()

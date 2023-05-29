@@ -17,6 +17,7 @@ struct AddShoppingListItemFieldView: View {
     var body: some View {
         GeometryReader { geometry in
             TextField("Add item...", text: $newItemTitle)
+                .foregroundColor(.text)
                 .focused($fieldFocusState)
                 .onChange(of: focusStateChange) { isFocused in
                     if !isFocused {

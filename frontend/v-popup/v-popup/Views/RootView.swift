@@ -24,10 +24,10 @@ struct RootView: View {
                     .offset(x: geometry.size.width)
             }
             .background{
-                LinearGradient(Color.backgroundStart, Color.backgroundEnd)
+                Color.background
                     .edgesIgnoringSafeArea(.all)
-                    .frame(width: geometry.size.width*2, height: geometry.size.height)
-                    .offset(x: geometry.size.width/2)
+                    .frame(width: geometry.size.width * 2)
+                    .offset(x: geometry.size.width / 2)
             }
             .offset(x: -geometry.size.width * CGFloat(slideOverPosition))
             .onAppear {

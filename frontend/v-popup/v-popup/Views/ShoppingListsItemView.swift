@@ -16,13 +16,14 @@ struct ShoppingListsItemView: View {
        GeometryReader { geometry in
            HStack {
                VStack (alignment: .leading) {
-                   Text(item.title).bold() + Text(" | " + "Created " + (item.created?.formatted(date: .numeric, time: .omitted) ?? ""))
-                   Text(item.items.count.description + " items")
+                   Text(item.title).bold().foregroundColor(.titleText) + Text(" | " + "Created " + (item.created?.formatted(date: .numeric, time: .omitted) ?? "")).foregroundColor(.text)
+                   Text(item.items.count.description + " items").foregroundColor(.text)
                }
+               Spacer()
                Button {
                    dataModel.deleteShoppingList(id: item.id!)
                } label: {
-                   Image(systemName: "trash")
+                   Image(systemName: "trash").bold().foregroundColor(.vRed)
                }
            }
             .padding()
