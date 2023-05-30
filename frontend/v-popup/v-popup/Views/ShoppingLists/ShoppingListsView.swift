@@ -34,7 +34,7 @@ struct ShoppingListsView: View {
                 .buttonStyle(NeumorphicButtonStyle())
                 .padding()
                 .alert("Log in status", isPresented: $showAuthAlert) {
-                    if (authService.localUser?.email != nil) {
+                    if (authService.user?.email != nil) {
                         Button(role: .destructive) {
                             do {
                                 try authService.signOut()
@@ -66,7 +66,7 @@ struct ShoppingListsView: View {
                         }
                     }
                 } message: {
-                    if (authService.localUser?.email != nil) {
+                    if (authService.user?.email != nil) {
                         Text("Currently signed in with Google")
                     } else {
                         Text("Currently signed in anonymously")

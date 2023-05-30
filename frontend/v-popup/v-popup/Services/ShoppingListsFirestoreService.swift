@@ -38,7 +38,7 @@ class ShoppingListsFirestoreService: ObservableObject {
         shoppingLists = [ShoppingList]()
         sharedShoppingLists = [ShoppingList]()
 
-        selectedShoppingList = ShoppingList(created: Date.now, owner: "nil", sharedWith: "nil", title: "nil", items: [ShoppingListItem]())
+        selectedShoppingList = ShoppingList(created: Date.now, owner: "", sharedWith: "", title: "", items: [ShoppingListItem]())
         
         self.db = authService.db
     

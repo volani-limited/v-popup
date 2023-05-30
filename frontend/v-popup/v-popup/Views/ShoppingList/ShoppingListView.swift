@@ -15,6 +15,7 @@ struct ShoppingListView: View {
     
     @State private var shouldDefocusNewField: Bool = false
     @State private var showShareAlert: Bool = false
+    @State private var showNotPermanantAccountError: Bool = false
     @State private var shareEmail: String = ""
     
     var body: some View {
@@ -33,7 +34,11 @@ struct ShoppingListView: View {
                 .padding(20)
                 Spacer()
                 Button {
-                    showShareAlert = true
+                    if authService.user?.email != nil {
+                        showShareAlert = true
+                    } else {
+                        showNotPermanantAccountError = true
+                    }
                 } label: {
                     ZStack {
                         NeumorphicShape(isHighlighted: false, shape: Circle()).frame(width: 40, height: 40)
@@ -50,6 +55,9 @@ struct ShoppingListView: View {
                     dataModel.selectedShoppingList.sharedWith = shareEmail.lowercased()
                     authService.sendShareNotification(to: shareEmail.lowercased())
                 }
+            }
+            .alert("You need to sign in with Google to share lists", isPresented: $showNotPermanantAccountError) {
+                Button("Ok", role: .cancel) { } //TODO: Add button for Sign in with Google?
             }
             
             HStack {
@@ -85,6 +93,9 @@ struct ShoppingListView: View {
         }
         .onTapGesture {
             shouldDefocusNewField.toggle()
+        }
+        .onAppear {
+            shareEmail = dataModel.selectedShoppingList.sharedWith
         }
     }
 }
