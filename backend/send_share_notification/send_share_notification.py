@@ -24,7 +24,7 @@ def main(request):
     auth_token = request.args.get("token")
     destination_email = request.args.get("email")
 
-    if not new_token or not old_token:
+    if not auth_token or not destination_email:
         return "Bad request, could not parse", 403
 
     if not verify_auth_token:
@@ -32,28 +32,28 @@ def main(request):
     
     db = firestore.client()
 
-    sender_query = db.collection("users").document(auth.verify_id_token(token)["uid"])
+    sender_query = db.collection("users").document(auth.verify_id_token(auth_token)["uid"])
 
     sender_doc = sender_query.get()
 
     if not sender_doc:
       return "Unauthorized", 401
 
-    if not sender_doc["email"]:
+    if not sender_doc.to_dict()["email"]:
       return "Unauthorized", 401
 
-    sender_email = sender_doc["email"]
+    sender_email = sender_doc.to_dict()["email"]
 
-    destination_query = db.collection("users").where("email", "==", email)
-    destination_user_docs = query.stream()
+    destination_query = db.collection("users").where("email", "==", sender_email)
+    destination_user_docs = destination_query.get()
 
-    if not dodestination_user_docscs:
+    if not destination_user_docs:
       return "Could not find user", 501
 
-    if not destination_user_docs[0]["fcmRegistrations"]:
+    if not destination_user_docs[0].to_dict()["fcmRegistrations"]:
       return "User has no FCM registration", 501
     
-    registrations = docs[0]["fcmRegistrations"]
+    registrations = destination_user_docs[0].to_dict()["fcmRegistrations"]
 
     message = messaging.MulticastMessage(
       notification=messaging.Notification(
@@ -65,4 +65,4 @@ def main(request):
     
     messaging.send_multicast(message)
     
-    return 200
+    return "Success!", 200
