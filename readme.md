@@ -1,7 +1,7 @@
 # PopUp!
 
 PopUp is a shopping list app built with SwiftUI using Firebase Auth, Firestore, Cloud Functions, and Messaging.
-
+Download on [Testflight](https://testflight.apple.com/join/bFJlL4bS).
 
 ## Features
 
