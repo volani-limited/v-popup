@@ -25,16 +25,18 @@ struct ShoppingListsView: View {
                     .font(.largeTitle)
                     .foregroundColor(.titleText)
                     .padding()
+                
                 Spacer()
+
                 Button {
                     showAuthAlert = true
                 } label: {
-                    Image(systemName: "person.circle")
+                    Image(systemName: "person.circle").foregroundColor(.text)
                 }
                 .buttonStyle(NeumorphicButtonStyle())
                 .padding()
                 .alert("Log in status", isPresented: $showAuthAlert) {
-                    if (authService.localUser?.email != nil) {
+                    if (authService.user?.email != nil) {
                         Button(role: .destructive) {
                             do {
                                 try authService.signOut()
@@ -66,7 +68,7 @@ struct ShoppingListsView: View {
                         }
                     }
                 } message: {
-                    if (authService.localUser?.email != nil) {
+                    if (authService.user?.email != nil) {
                         Text("Currently signed in with Google")
                     } else {
                         Text("Currently signed in anonymously")
@@ -94,15 +96,18 @@ struct ShoppingListsView: View {
                 }
             }
             
-            if false { //!dataModel.sharedShoppingLists.isEmpty {
+            if !dataModel.sharedShoppingLists.isEmpty {
                 HStack {
-                    Text("Shared with me").font(.title)
+                    Text("Shared\nwith me")
+                        .bold()
+                        .font(.largeTitle)
+                        .foregroundColor(.titleText)
                         .padding()
                     Spacer()
                 }
                 ScrollView {
-                    VStack {
-                        ForEach(dataModel.shoppingLists, id: \.id) { shoppingList in
+                    VStack(spacing: 80) {
+                        ForEach(dataModel.sharedShoppingLists, id: \.id) { shoppingList in
                             ShoppingListsItemView(item: shoppingList)
                                 .onTapGesture {
                                     dataModel.selectedShoppingList = shoppingList
@@ -112,6 +117,7 @@ struct ShoppingListsView: View {
                                 }
                         }
                     }
+                    .padding(.top, 40)
                 }
             }
         }

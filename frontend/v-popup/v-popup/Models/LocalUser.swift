@@ -14,10 +14,12 @@ struct LocalUser: Identifiable, Codable {
     @ServerTimestamp var created: Date?
     
     var email: String?
+    var fcmRegistrations: [String]
     
     enum CodingKeys: String, CodingKey {
         case id
         case created
         case email
+        case fcmRegistrations
     }
 }

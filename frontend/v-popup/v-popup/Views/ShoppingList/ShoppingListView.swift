@@ -9,11 +9,15 @@ import SwiftUI
 
 struct ShoppingListView: View {
     @EnvironmentObject var dataModel: ShoppingListsFirestoreService
+    @EnvironmentObject var authService: AuthService
     
     @Binding var slideOverPosition: Int
     
     @State private var shouldDefocusNewField: Bool = false
-
+    @State private var showShareAlert: Bool = false
+    @State private var showNotPermanantAccountError: Bool = false
+    @State private var shareEmail: String = ""
+    
     var body: some View {
         VStack {
             HStack {
@@ -29,15 +33,35 @@ struct ShoppingListView: View {
                 }.buttonStyle(NeumorphicButtonStyle())
                 .padding(20)
                 Spacer()
-                /*Button {
-                    //share
+                Button {
+                    if authService.user?.email != nil {
+                        showShareAlert = true
+                    } else {
+                        showNotPermanantAccountError = true
+                    }
                 } label: {
                     ZStack {
                         NeumorphicShape(isHighlighted: false, shape: Circle()).frame(width: 40, height: 40)
-                        Image(systemName: "arrow.backward").scaledToFit().foregroundColor(.text)
+                        Image(systemName: "square.and.arrow.up.circle")
+                            .foregroundColor(.text)
                     }
                 }
-                .padding(20)*/
+                .padding(20)
+            }
+            .alert("Enter the email address to share to (leave empty to not share)", isPresented: $showShareAlert) {
+                TextField("Email...", text: $shareEmail)
+                    .autocapitalization(.none)
+                Button("Ok", role: .cancel) {
+                    guard shareEmail != authService.user?.email else {
+                        return
+                    }
+
+                    dataModel.selectedShoppingList.sharedWith = shareEmail.lowercased()
+                    authService.sendShareNotification(to: shareEmail.lowercased())
+                }
+            }
+            .alert("You need to sign in with Google to share lists", isPresented: $showNotPermanantAccountError) {
+                Button("Ok", role: .cancel) { } //TODO: Add button for Sign in with Google?
             }
             
             HStack {
@@ -73,6 +97,9 @@ struct ShoppingListView: View {
         }
         .onTapGesture {
             shouldDefocusNewField.toggle()
+        }
+        .onAppear {
+            shareEmail = dataModel.selectedShoppingList.sharedWith
         }
     }
 }

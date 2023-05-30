@@ -9,7 +9,8 @@ import SwiftUI
 
 struct ShoppingListsItemView: View {
     @EnvironmentObject var dataModel: ShoppingListsFirestoreService
-
+    @EnvironmentObject var authService: AuthService
+    
     var item: ShoppingList
 
     var body: some View {
@@ -20,11 +21,24 @@ struct ShoppingListsItemView: View {
                    Text(item.items.count.description + (item.items.count == 1 ? " item" : " items"))
                        .foregroundColor(.text)
                }
+               
                Spacer()
-               Button {
-                   dataModel.deleteShoppingList(id: item.id!)
-               } label: {
-                   Image(systemName: "trash").bold().foregroundColor(.vRed)
+
+               if item.sharedWith != authService.user?.email {
+                   Button {
+                       dataModel.deleteShoppingList(id: item.id!)
+                   } label: {
+                       Image(systemName: "trash").bold().foregroundColor(.vRed)
+                   }
+               } else {
+                   Button {
+                       var unsharedItem = item
+                       unsharedItem.sharedWith = ""
+                       
+                       dataModel.selectedShoppingList = unsharedItem
+                   } label: {
+                       Image(systemName: "x.circle").bold().foregroundColor(.vRed)
+                   }
                }
            }
             .padding()

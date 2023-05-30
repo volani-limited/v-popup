@@ -12,6 +12,7 @@ import GoogleSignIn
 class AuthService: ObservableObject {
     @Published var user: User?
     @Published var localUser: LocalUser?
+    var fcmToken: String?
     
     private(set) var db: Firestore
     
@@ -36,7 +37,9 @@ class AuthService: ObservableObject {
         
         print("User anonymously signed in with uid: " + String(authResult.user.uid))
         
-        localUser = LocalUser(id: authResult.user.uid)
+        let registration = [fcmToken ?? ""]
+        
+        localUser = LocalUser(id: authResult.user.uid, fcmRegistrations: registration)
         try setUserFile()
     }
     
@@ -67,6 +70,7 @@ class AuthService: ObservableObject {
             guard (error as NSError).code == AuthErrorCode.credentialAlreadyInUse.rawValue else {
                 throw AuthError.signInWithGoogleError
             }
+
             try await Auth.auth().signIn(with: credential)
             try await mergeUserData(with: oldIDToken!)
         }
@@ -76,13 +80,31 @@ class AuthService: ObservableObject {
         try Auth.auth().signOut()
     }
     
+    func sendShareNotification(to email: String) {
+        Task {
+            let authToken = try await self.user?.getIDToken()
+            
+            let email2 = "oliver@volani.co.uk"
+            
+            let url = URL(string: "https://europe-west2-v-popup.cloudfunctions.net/send_share_notification?token=\(authToken!)&email=\(email2)")
+            let request = URLRequest(url: url!)
+
+            let (_, response) = try await URLSession.shared.data(for: request)
+
+            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                print("There was an error sending the share notification")
+                return
+            }
+        }
+    }
+    
     private func mergeUserData(with oldIDToken: String) async throws {
         let newIDToken = try await self.user?.getIDToken()
         
         let url = URL(string: "https://europe-west2-v-popup.cloudfunctions.net/merge_accounts?new=\(newIDToken!)&old=\(oldIDToken)")
         let request = URLRequest(url: url!)
         
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (_, response) = try await URLSession.shared.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
             throw AuthError.signInWithGoogleError
