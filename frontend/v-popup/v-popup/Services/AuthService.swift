@@ -22,8 +22,10 @@ class AuthService: ObservableObject {
         db = Firestore.firestore()
         registerAuthStateDidChangeListener()
         registerUserFileListener()
+        try! Auth.auth().signOut()
     }
     
+    @MainActor
     func signInAnonymously() async throws {
         let authResult = try await Auth.auth().signInAnonymously()
         
@@ -33,6 +35,7 @@ class AuthService: ObservableObject {
         try setUserFile()
     }
     
+    @MainActor
     func signInWithGoogle() async throws {
         let clientID = FirebaseApp.app()!.options.clientID
         
@@ -46,9 +49,34 @@ class AuthService: ObservableObject {
         
         let credential = GoogleAuthProvider.credential(withIDToken: authResult.user.idToken!.tokenString, accessToken: authResult.user.accessToken.tokenString)
         
-        try await self.user?.link(with: credential)
+        let oldIDToken = try await self.user?.getIDToken()
+        
+        do {
+            try await self.user?.link(with: credential)
+        } catch {
+            guard (error as NSError).code == AuthErrorCode.credentialAlreadyInUse.rawValue else {
+                throw AuthError.signInWithGoogleError
+                return
+            }
+            try await Auth.auth().signIn(with: credential)
+            try await mergeUserData(with: oldIDToken!)
+        }
+        
         localUser?.email = self.user?.email
         try setUserFile()
+    }
+    
+    private func mergeUserData(with oldIDToken: String) async throws {
+        let newIDToken = try await self.user?.getIDToken()
+        
+        let url = URL(string: "https://europe-west2-v-popup.cloudfunctions.net/merge_accounts?new=\(newIDToken!)&old=\(oldIDToken)")
+        let request = URLRequest(url: url!)
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+            throw AuthError.signInWithGoogleError
+        }
     }
     
     private func setUserFile() throws { //TODO: make async?
