@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ShoppingListView: View {
     @EnvironmentObject var dataModel: ShoppingListsFirestoreService
+    @EnvironmentObject var authService: AuthService
     
     @Binding var slideOverPosition: Int
     
@@ -42,11 +43,12 @@ struct ShoppingListView: View {
                 }
                 .padding(20)
             }
-            .alert("Enter the email address to share to (leave empty to not share)" $showShareAlert) {
-                TextField("Email...", $shareEmail)
+            .alert("Enter the email address to share to (leave empty to not share)", isPresented: $showShareAlert) {
+                TextField("Email...", text: $shareEmail)
+                    .autocapitalization(.none)
                 Button("Ok", role: .cancel) {
-                    dataModel.selectedShoppingList.sharedWith = shareEmail
-                    authService.sendShareNotification(to: shareEmail)
+                    dataModel.selectedShoppingList.sharedWith = shareEmail.lowercased()
+                    authService.sendShareNotification(to: shareEmail.lowercased())
                 }
             }
             

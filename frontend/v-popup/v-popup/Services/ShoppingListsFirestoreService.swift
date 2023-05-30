@@ -45,8 +45,14 @@ class ShoppingListsFirestoreService: ObservableObject {
         authService.$user.sink { [weak self] user in
             self?.uid = user?.uid
             self?.registerShoppingListsListener()
+
             if let email = user?.email {
                 self?.registerSharedShoppingListsListener(for: email)
+            } else {
+                if let listener = self?.sharedShoppingListsListenerRegistration {
+                    listener.remove()
+                    self?.sharedShoppingListsListenerRegistration = nil
+                }
             }
         }
         .store(in: &subscriptions)
