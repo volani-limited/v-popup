@@ -36,12 +36,16 @@ struct ShoppingListsView: View {
                 .alert("Log in status", isPresented: $showAuthAlert) {
                     if (authService.localUser?.email != nil) {
                         Button(role: .destructive) {
-                            //handle sign out
+                            do {
+                                try authService.signOut()
+                            } catch {
+                                showAuthErrorAlert = true
+                            }
                         } label: {
                             Text("Sign out")
                         }
                         
-                        Button("Ok") { }
+                        Button("Ok", role: .cancel) { }
 
                     } else {
                         Button {
@@ -49,17 +53,15 @@ struct ShoppingListsView: View {
                                 do {
                                     try await authService.signInWithGoogle()
                                 } catch {
+                                    showAuthAlert = false
                                     showAuthErrorAlert = true
                                 }
                             }
                         } label: {
                             Text("Sign in with Google")
                         }
-                        .alert("There was an error signing in with Google", isPresented: $showAuthErrorAlert) {
-                                    Button("Ok", role: .cancel) { }
-                        }
                         
-                        Button("Ok") {
+                        Button("Ok", role: .cancel) {
                             
                         }
                     }
@@ -69,6 +71,9 @@ struct ShoppingListsView: View {
                     } else {
                         Text("Currently signed in anonymously")
                     }
+                }
+                .alert("There was an error siging in/out with Google", isPresented: $showAuthErrorAlert) {
+                            Button("Ok", role: .cancel) { }
                 }
             }
             

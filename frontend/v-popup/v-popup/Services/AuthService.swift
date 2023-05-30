@@ -21,8 +21,13 @@ class AuthService: ObservableObject {
     init() {
         db = Firestore.firestore()
         registerAuthStateDidChangeListener()
-        registerUserFileListener()
-        try! Auth.auth().signOut()
+    }
+
+    deinit {
+        if let userStateHandle = self.userStateHandle {
+            Auth.auth().removeStateDidChangeListener(userStateHandle)
+        }
+        userFileListener?.remove()
     }
     
     @MainActor
@@ -37,13 +42,18 @@ class AuthService: ObservableObject {
     
     @MainActor
     func signInWithGoogle() async throws {
+        defer {
+            localUser?.email = self.user?.email
+            try? setUserFile()
+        }
+
         let clientID = FirebaseApp.app()!.options.clientID
         
         let config = GIDConfiguration(clientID: clientID!)
         GIDSignIn.sharedInstance.configuration = config
         
-        let windowScene = await UIApplication.shared.connectedScenes.first as? UIWindowScene
-        let rootViewController = await windowScene!.windows.first?.rootViewController
+        let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene
+        let rootViewController = windowScene!.windows.first?.rootViewController
         
         let authResult = try await GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController!)
         
@@ -56,14 +66,14 @@ class AuthService: ObservableObject {
         } catch {
             guard (error as NSError).code == AuthErrorCode.credentialAlreadyInUse.rawValue else {
                 throw AuthError.signInWithGoogleError
-                return
             }
             try await Auth.auth().signIn(with: credential)
             try await mergeUserData(with: oldIDToken!)
         }
-        
-        localUser?.email = self.user?.email
-        try setUserFile()
+    }
+    
+    func signOut() throws {
+        try Auth.auth().signOut()
     }
     
     private func mergeUserData(with oldIDToken: String) async throws {
@@ -105,15 +115,16 @@ class AuthService: ObservableObject {
             Auth.auth().removeStateDidChangeListener(handle) // Remove handle if it exists already
         }
         
-        self.userStateHandle = Auth.auth().addStateDidChangeListener { (auth, user) in // Add handle and handle cases
+        self.userStateHandle = Auth.auth().addStateDidChangeListener { [weak self] (auth, user) in // Add handle and handle cases
             
-                self.user = user
+                self?.user = user
                 if let user = user {
                     print("User state changed, uid: " + user.uid)
+                    self?.registerUserFileListener()
                 } else {
                     Task {
                         do {
-                            try await self.signInAnonymously()
+                            try await self?.signInAnonymously()
                         } catch {
                             fatalError("The user could not be signed in.")
                     }

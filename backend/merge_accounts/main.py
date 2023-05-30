@@ -29,16 +29,18 @@ def verify_new_token(token):
             return False
 
         auth_time = decoded_auth_token["auth_time"] * 1000
-        sign_in_time = int(time.time() * 1000) - auth_time
+        sign_in_time = int(time.time()) - auth_time
         
         if sign_in_time > 300000:
             return False
+        else:
+            return True
     except:
         return False
 
 def perform_migration(old_token, new_token):
-    old_id = old_token.uid
-    new_id = new_token.uid
+    old_id = old_token["uid"]
+    new_id = new_token["uid"]
 
     db = firestore.client()
 
@@ -47,8 +49,9 @@ def perform_migration(old_token, new_token):
 
     @firestore.transactional
     def update_in_transaction(transaction, old_items_ref):
-        snapshot = old_items_ref.get(transaction=transaction)
-        transaction.update(old_items_ref, {
+        documents = old_items_ref.stream(transaction=transaction)
+        for document in documents:
+            transaction.update(document.reference, {
                 "owner": new_id
             })
 
@@ -68,12 +71,13 @@ def main(request):
     if not new_token or not old_token:
         return "Bad request, could not parse", 403
 
+
     if not verify_old_token(old_token):
         return "Unauthorized: could not verify old token", 401
     
     if not verify_new_token(new_token):
         return "Unauthorized: Could not verify new account token", 401
 
-    perform_migration(old_token, new_token)
+    perform_migration(auth.verify_id_token(old_token), auth.verify_id_token(new_token))
 
     return "Success", 200
