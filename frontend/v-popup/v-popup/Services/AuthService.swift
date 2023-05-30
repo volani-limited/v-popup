@@ -84,9 +84,7 @@ class AuthService: ObservableObject {
         Task {
             let authToken = try await self.user?.getIDToken()
             
-            let email2 = "oliver@volani.co.uk"
-            
-            let url = URL(string: "https://europe-west2-v-popup.cloudfunctions.net/send_share_notification?token=\(authToken!)&email=\(email2)")
+            let url = URL(string: "https://europe-west2-v-popup.cloudfunctions.net/send_share_notification?token=\(authToken!)&email=\(email)")
             let request = URLRequest(url: url!)
 
             let (_, response) = try await URLSession.shared.data(for: request)

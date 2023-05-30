@@ -33,7 +33,6 @@ def main(request):
     db = firestore.client()
 
     sender_query = db.collection("users").document(auth.verify_id_token(auth_token)["uid"])
-
     sender_doc = sender_query.get()
 
     if not sender_doc:
@@ -44,7 +43,7 @@ def main(request):
 
     sender_email = sender_doc.to_dict()["email"]
 
-    destination_query = db.collection("users").where("email", "==", sender_email)
+    destination_query = db.collection("users").where("email", "==", destination_email)
     destination_user_docs = destination_query.get()
 
     if not destination_user_docs:
@@ -65,4 +64,4 @@ def main(request):
     
     messaging.send_multicast(message)
     
-    return "Success!", 200
+    return "Successful!", 200
