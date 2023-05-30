@@ -23,7 +23,7 @@ def verify_new_token(token):
         decoded_auth_token = auth.verify_id_token(token)
 
         if decoded_auth_token == None:
-            reurn False
+            return False
 
         if decoded_auth_token.firebase.sign_in_provider == "anonymous":
             return False
@@ -33,6 +33,8 @@ def verify_new_token(token):
         
         if sign_in_time > 300000:
             return False
+    except:
+        return False
 
 def perform_migration(old_token, new_token):
     old_id = old_token.uid
@@ -50,7 +52,7 @@ def perform_migration(old_token, new_token):
                 "owner": new_id
             })
 
-    update_in_transaction(transaction, old_items_ref)
+    update_in_transaction(migration_transaction, old_items_ref)
 
 def main(request):
     if not firebase_admin._apps:
@@ -63,10 +65,8 @@ def main(request):
     old_token = request.args.get("old")
 
 
-    if not token or not anonymous_id or not new_id:
+    if not new_token or not old_token:
         return "Bad request, could not parse", 403
-
-    if not 
 
 
     if not verify_old_token(old_token):
