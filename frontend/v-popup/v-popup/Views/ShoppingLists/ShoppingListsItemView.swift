@@ -21,7 +21,9 @@ struct ShoppingListsItemView: View {
                    Text(item.items.count.description + (item.items.count == 1 ? " item" : " items"))
                        .foregroundColor(.text)
                }
+               
                Spacer()
+
                if item.sharedWith != authService.user?.email {
                    Button {
                        dataModel.deleteShoppingList(id: item.id!)

@@ -52,6 +52,10 @@ struct ShoppingListView: View {
                 TextField("Email...", text: $shareEmail)
                     .autocapitalization(.none)
                 Button("Ok", role: .cancel) {
+                    guard shareEmail != authService.user?.email else {
+                        return
+                    }
+
                     dataModel.selectedShoppingList.sharedWith = shareEmail.lowercased()
                     authService.sendShareNotification(to: shareEmail.lowercased())
                 }

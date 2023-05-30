@@ -57,6 +57,7 @@ class ShoppingListsFirestoreService: ObservableObject {
         }
         .store(in: &subscriptions)
     }
+
     deinit {
         subscriptions.forEach { $0.cancel() }
     }

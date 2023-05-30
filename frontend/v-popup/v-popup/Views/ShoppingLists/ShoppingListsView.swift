@@ -25,7 +25,9 @@ struct ShoppingListsView: View {
                     .font(.largeTitle)
                     .foregroundColor(.titleText)
                     .padding()
+                
                 Spacer()
+
                 Button {
                     showAuthAlert = true
                 } label: {

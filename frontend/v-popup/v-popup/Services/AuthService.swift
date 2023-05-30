@@ -70,6 +70,7 @@ class AuthService: ObservableObject {
             guard (error as NSError).code == AuthErrorCode.credentialAlreadyInUse.rawValue else {
                 throw AuthError.signInWithGoogleError
             }
+
             try await Auth.auth().signIn(with: credential)
             try await mergeUserData(with: oldIDToken!)
         }
@@ -88,7 +89,8 @@ class AuthService: ObservableObject {
             let url = URL(string: "https://europe-west2-v-popup.cloudfunctions.net/send_share_notification?token=\(authToken!)&email=\(email2)")
             let request = URLRequest(url: url!)
 
-            let (data, response) = try await URLSession.shared.data(for: request)
+            let (_, response) = try await URLSession.shared.data(for: request)
+
             guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
                 print("There was an error sending the share notification")
                 return
@@ -102,7 +104,7 @@ class AuthService: ObservableObject {
         let url = URL(string: "https://europe-west2-v-popup.cloudfunctions.net/merge_accounts?new=\(newIDToken!)&old=\(oldIDToken)")
         let request = URLRequest(url: url!)
         
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (_, response) = try await URLSession.shared.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
             throw AuthError.signInWithGoogleError
