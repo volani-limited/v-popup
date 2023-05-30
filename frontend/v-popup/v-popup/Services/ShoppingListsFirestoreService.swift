@@ -14,6 +14,8 @@ import FirebaseFirestoreSwift
 
 class ShoppingListsFirestoreService: ObservableObject {
     @Published var shoppingLists: [ShoppingList]
+    @Published var sharedShoppingLists: [ShoppingList]
+
     @Published var selectedShoppingList: ShoppingList { didSet {
             do {
                 try saveSelectedShoppingList()
@@ -26,20 +28,26 @@ class ShoppingListsFirestoreService: ObservableObject {
     private var db: Firestore
     private var uid: String?
 
-    private var documentsListenerRegistration: ListenerRegistration?
-    
+    private var shoppingListsListenerRegistration: ListenerRegistration?
+    private var sharedShoppingListsListenerRegistration: ListenerRegistration?
+
     private var subscriptions: Set<AnyCancellable>
     
     init(authService: AuthService) {
         subscriptions = Set<AnyCancellable>()
         shoppingLists = [ShoppingList]()
-        selectedShoppingList = ShoppingList(created: Date.now, owner: "nil", title: "nil", items: [ShoppingListItem]())
+        sharedShoppingLists = [ShoppingList]()
+
+        selectedShoppingList = ShoppingList(created: Date.now, owner: "nil", sharedWith: "nil", title: "nil", items: [ShoppingListItem]())
         
         self.db = authService.db
     
         authService.$user.sink { [weak self] user in
             self?.uid = user?.uid
-            self?.registerDocumentsListener()
+            self?.registerShoppingListsListener()
+            if let email = user?.email {
+                self?.registerSharedShoppingListsListener(for: email)
+            }
         }
         .store(in: &subscriptions)
     }
@@ -47,20 +55,18 @@ class ShoppingListsFirestoreService: ObservableObject {
         subscriptions.forEach { $0.cancel() }
     }
     
-    func registerDocumentsListener() {
-        if let listener = documentsListenerRegistration {
+    private func registerShoppingListsListener() {
+        if let listener = shoppingListsListenerRegistration {
             listener.remove()
-            documentsListenerRegistration = nil
+            shoppingListsListenerRegistration = nil
         }
         
         let query = db.collection("shopping_lists").whereField("owner", isEqualTo: uid?.description)
-        documentsListenerRegistration = query.addSnapshotListener { [weak self] (querySnapshot, error) in
-
+        shoppingListsListenerRegistration = query.addSnapshotListener { [weak self] (querySnapshot, error) in
             guard let documents = querySnapshot?.documents else {
                 print("No documents in shopping_lists collection")
                 return
             }
-            
             
             self?.shoppingLists = documents.compactMap { queryDocumentSnapshot in
                 do {
@@ -73,8 +79,33 @@ class ShoppingListsFirestoreService: ObservableObject {
         }
     }
     
+    private func registerSharedShoppingListsListener(for email: String) {
+        if let listener = sharedShoppingListsListenerRegistration {
+            listener.remove()
+            sharedShoppingListsListenerRegistration = nil
+        }
+        
+        let query = db.collection("shopping_lists").whereField("sharedWith", isEqualTo: email)
+        
+        sharedShoppingListsListenerRegistration = query.addSnapshotListener { [weak self] (querySnapshot, error) in
+            guard let documents = querySnapshot?.documents else {
+                print("No documents in shopping_lists collection")
+                return
+            }
+            
+            self?.sharedShoppingLists = documents.compactMap { queryDocumentSnapshot in
+                do {
+                    return try queryDocumentSnapshot.data(as: ShoppingList.self)
+                } catch {
+                    print("There was an error decoding the document")
+                    return nil
+                }
+            }
+        }
+    }
+    
     func addShoppingList(withTitle title: String) throws {
-        let newList = ShoppingList(owner: uid!, title: title, items: [ShoppingListItem]())
+        let newList = ShoppingList(owner: uid!, sharedWith: "", title: title, items: [ShoppingListItem]())
         let ref = db.collection("shopping_lists")
         
         try ref.addDocument(from: newList)

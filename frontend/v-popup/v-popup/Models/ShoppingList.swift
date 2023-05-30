@@ -13,7 +13,7 @@ struct ShoppingList: Codable {
     @ServerTimestamp var created: Date?
     
     var owner: String
-    var sharedWith: String?
+    var sharedWith: String
     var title: String
     var items: [ShoppingListItem]
     

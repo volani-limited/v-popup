@@ -13,7 +13,9 @@ struct ShoppingListView: View {
     @Binding var slideOverPosition: Int
     
     @State private var shouldDefocusNewField: Bool = false
-
+    @State private var showShareAlert: Bool = false
+    @State private var shareEmail: String = ""
+    
     var body: some View {
         VStack {
             HStack {
@@ -29,15 +31,23 @@ struct ShoppingListView: View {
                 }.buttonStyle(NeumorphicButtonStyle())
                 .padding(20)
                 Spacer()
-                /*Button {
-                    //share
+                Button {
+                    showShareAlert = true
                 } label: {
                     ZStack {
                         NeumorphicShape(isHighlighted: false, shape: Circle()).frame(width: 40, height: 40)
-                        Image(systemName: "arrow.backward").scaledToFit().foregroundColor(.text)
+                        Image(systemName: "square.and.arrow.up.circle")
+                            .foregroundColor(.text)
                     }
                 }
-                .padding(20)*/
+                .padding(20)
+            }
+            .alert("Enter the email address to share to (leave empty to not share)" $showShareAlert) {
+                TextField("Email...", $shareEmail)
+                Button("Ok", role: .cancel) {
+                    dataModel.selectedShoppingList.sharedWith = shareEmail
+                    authService.sendShareNotification(to: shareEmail)
+                }
             }
             
             HStack {
