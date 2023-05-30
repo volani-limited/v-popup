@@ -17,7 +17,8 @@ struct ShoppingListsItemView: View {
            HStack {
                VStack (alignment: .leading) {
                    Text(item.title).bold().foregroundColor(.titleText) + Text(" | " + "Created " + (item.created?.formatted(date: .numeric, time: .omitted) ?? "")).foregroundColor(.text)
-                   Text(item.items.count.description + " items").foregroundColor(.text)
+                   Text(item.items.count.description + (item.items.count == 1 ? " item" : " items"))
+                       .foregroundColor(.text)
                }
                Spacer()
                Button {

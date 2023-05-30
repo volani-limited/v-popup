@@ -49,7 +49,7 @@ struct ShoppingListView: View {
                     Text("Created: " + (dataModel.selectedShoppingList.created?.formatted(date: .numeric, time: .omitted) ?? ""))
                         .foregroundColor(.text)
                         .bold()
-                    Text("Items: " + dataModel.selectedShoppingList.items.count.description)
+                    Text(dataModel.selectedShoppingList.items.count.description + (dataModel.selectedShoppingList.items.count == 1 ? " item" : " items"))
                         .foregroundColor(.text)
                 }
                 .padding()
