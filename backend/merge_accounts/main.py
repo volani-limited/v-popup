@@ -11,7 +11,7 @@ def verify_old_token(token):
         if decoded_auth_token == None:
             return False
 
-        if decoded_auth_token.firebase.sign_in_provider == "anonymous":
+        if decoded_auth_token["firebase"]["sign_in_provider"] == "anonymous":
             return True
         else:
             return False
@@ -25,10 +25,10 @@ def verify_new_token(token):
         if decoded_auth_token == None:
             return False
 
-        if decoded_auth_token.firebase.sign_in_provider == "anonymous":
+        if decoded_auth_token["firebase"]["sign_in_provider"] == "anonymous":
             return False
 
-        auth_time = decoded_auth_token.auth_time * 1000
+        auth_time = decoded_auth_token["auth_time"] * 1000
         sign_in_time = int(time.time() * 1000) - auth_time
         
         if sign_in_time > 300000:
@@ -67,7 +67,6 @@ def main(request):
 
     if not new_token or not old_token:
         return "Bad request, could not parse", 403
-
 
     if not verify_old_token(old_token):
         return "Unauthorized: could not verify old token", 401
