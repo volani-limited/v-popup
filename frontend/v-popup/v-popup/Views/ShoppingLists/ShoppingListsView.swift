@@ -27,7 +27,7 @@ struct ShoppingListsView: View {
                     .padding()
                 
                 Spacer()
-
+                
                 Button {
                     showAuthAlert = true
                 } label: {
@@ -48,7 +48,7 @@ struct ShoppingListsView: View {
                         }
                         
                         Button("Ok", role: .cancel) { }
-
+                        
                     } else {
                         Button {
                             Task {
@@ -75,7 +75,7 @@ struct ShoppingListsView: View {
                     }
                 }
                 .alert("There was an error siging in/out with Google", isPresented: $showAuthErrorAlert) {
-                            Button("Ok", role: .cancel) { }
+                    Button("Ok", role: .cancel) { }
                 }
             }
             
@@ -93,31 +93,28 @@ struct ShoppingListsView: View {
                                 }
                         }
                     }
-                }
-            }
-            
-            if !dataModel.sharedShoppingLists.isEmpty {
-                HStack {
-                    Text("Shared\nwith me")
-                        .bold()
-                        .font(.largeTitle)
-                        .foregroundColor(.titleText)
-                        .padding()
-                    Spacer()
-                }
-                ScrollView {
-                    VStack(spacing: 80) {
-                        ForEach(dataModel.sharedShoppingLists, id: \.id) { shoppingList in
-                            ShoppingListsItemView(item: shoppingList)
-                                .onTapGesture {
-                                    dataModel.selectedShoppingList = shoppingList
-                                    withAnimation {
-                                        slideOverPosition = 1
+                    if !dataModel.sharedShoppingLists.isEmpty {
+                        HStack {
+                            Text("Shared\nwith me")
+                                .bold()
+                                .font(.largeTitle)
+                                .foregroundColor(.titleText)
+                                .padding()
+                            Spacer()
+                        }
+                        VStack(spacing: 75) {
+                            ForEach(dataModel.sharedShoppingLists, id: \.id) { shoppingList in
+                                ShoppingListsItemView(item: shoppingList)
+                                    .onTapGesture {
+                                        dataModel.selectedShoppingList = shoppingList
+                                        withAnimation {
+                                            slideOverPosition = 1
+                                        }
                                     }
-                                }
+                            }
+                            Spacer()
                         }
                     }
-                    .padding(.top, 40)
                 }
             }
         }
